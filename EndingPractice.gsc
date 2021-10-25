@@ -353,6 +353,5 @@ zombie_spawn_delay_fix()
 		}
 
 		level.zombie_vars[ "zombie_spawn_delay" ] = delay;
-		iprintln(delay);
 	}
 }
