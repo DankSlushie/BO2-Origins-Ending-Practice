@@ -86,7 +86,7 @@ initEndingPractice() {
 	takeUpgradedFire();
 
 	thread progressEE();
-
+	
 	level notify( "biplane_down" );
 
 	level.force_weather[16] = "rain"; // for 5 extra dig spots
@@ -102,6 +102,10 @@ initEndingPractice() {
 	teleportPlayer(self, (2372.42, 101.088, 120.125));
 
 	iprintln("Build the maxis drone and finish the EE starting with rain fire");
+	
+	level waittill( "start_of_round" );
+
+	self leaveAlive(24);
 }
 
 takeUpgradedFire() {
@@ -164,30 +168,23 @@ openAllDoors()
 }
 
 setRound(round) {	
-	self thread killAllZombies();
+	self thread leaveAlive(0);
     level.round_number = (round - 1);
 	wait 2;
 }
 
-killAllZombies()
+leaveAlive(n)
 {
+	
     zombs=getaiarray("axis");
-    level.zombie_total=0;
+    level.zombie_total=n;
     if(isDefined(zombs))
     {
-        for(i=0;i<zombs.size;i++)
+        for(i=0;i<zombs.size-n;i++)
         {
             zombs[i] dodamage(zombs[i].health * 5000,(0,0,0),self);
             wait 0.05;
         }
-        foreach(player in level.players)
-    	{
-        	level thread maps\mp\zombies\_zm_powerups::nuke_powerup(self,player.team);
-        	player maps\mp\zombies\_zm_powerups::powerup_vo("nuke");
-        	zombies=getaiarray(level.zombie_team);
-        	player.zombie_nuked=arraysort(zombies,self.origin);
-        	player notify("nuke_triggered");
-    	}
     }
 }
 
@@ -255,10 +252,12 @@ pickupEverything() //checked changed to match cerberus output
 	keys = getarraykeys( level.cheat_craftables );
 	foreach ( key in keys )
 	{
-		s_piece = level.cheat_craftables[ key ];
-		if ( isDefined( s_piece.piecespawn ) )
-		{
-			self player_take_piece( s_piece.piecespawn );
+		if (!issubstr( key, "shield" )) {
+			s_piece = level.cheat_craftables[ key ];
+			if ( isDefined( s_piece.piecespawn ) )
+			{
+				self player_take_piece( s_piece.piecespawn );
+			}
 		}
 	} 
 	for ( i = 1; i <= 4; i++ )
@@ -326,7 +325,9 @@ progressEE() {
 	_k350 = getFirstArrayKey( _a350 );
 	while ( isDefined( _k350 ) )
 	{
-		_a350[ _k350 ].upgrade.charger.is_inserted = 1;
+		if (!_a350[ _k350 ].weapname == "staff_fire_zm") {
+			_a350[ _k350 ].upgrade.charger.is_inserted = 1;
+		}
 		_k350 = getNextArrayKey( _a350, _k350 );
 	}
 }
@@ -348,7 +349,7 @@ zombie_spawn_delay_fix()
 		level waittill( "start_of_round" );
 
 		delay = 2;
-		for (i = 2; i < level.round_number; i++) {
+		for (i = 2; i <= level.round_number; i++) {
 			delay *= 0.95;
 		}
 
