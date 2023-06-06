@@ -34,10 +34,16 @@ init() {
     createDvar("EndingPractice_gram", 1);
     createDvar("EndingPractice_foot", 0);
 
+    level thread speedStart();
     level thread onPlayerConnect();
     level thread initEndingPractice();
-    level thread chatMonitor();
     level thread spawnDelayFix();
+    level thread chatMonitor();
+
+    level waittill("start_of_round");
+    setDvar("timescale", 1);
+    thread printMessage();
+
 }
 
 onPlayerConnect() {
@@ -88,12 +94,17 @@ onPlayerSpawned() {
     }
 }
 
+speedStart()
+{
+    flag_wait( "initial_players_connected" );
+    setDvar("timescale", 10);
+}
+
 initEndingPractice() {
     self endon("end_game");
 
     flag_wait("initial_blackscreen_passed");
 
-    thread printMessage();
     thread openAllDoors();
     thread takeAllParts();
     thread craftMaxisAtWind();
