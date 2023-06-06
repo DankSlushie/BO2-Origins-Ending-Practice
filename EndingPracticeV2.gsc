@@ -34,10 +34,16 @@ init() {
     createDvar("EndingPractice_gram", 1);
     createDvar("EndingPractice_foot", 0);
 
+    level thread speedStart();
     level thread onPlayerConnect();
     level thread initEndingPractice();
-    level thread chatMonitor();
     level thread spawnDelayFix();
+    level thread chatMonitor();
+
+    level waittill("start_of_round");
+    setDvar("timescale", 1);
+    thread printMessage();
+
 }
 
 onPlayerConnect() {
@@ -88,12 +94,17 @@ onPlayerSpawned() {
     }
 }
 
+speedStart()
+{
+    flag_wait( "initial_players_connected" );
+    setDvar("timescale", 10);
+}
+
 initEndingPractice() {
     self endon("end_game");
 
     flag_wait("initial_blackscreen_passed");
 
-    thread printMessage();
     thread openAllDoors();
     thread takeAllParts();
     thread craftMaxisAtWind();
@@ -140,7 +151,7 @@ chatMonitor() {
         } else if (message == "left") {
             setDvar("EndingPractice_foot", 1);
             printDvar("EndingPractice_foot");
-            
+
         } else if (message == "right") {
             setDvar("EndingPractice_foot", 2);
             printDvar("EndingPractice_foot");
@@ -168,7 +179,7 @@ placeStaffsInChargers() {
         flag_set("charger_ready_" + i);
         wait 0.5;
     }
-    foreach (staff in level.a_elemental_staffs) {        
+    foreach (staff in level.a_elemental_staffs) {
         staff.charger.is_inserted = 1;
         maps\mp\zm_tomb_craftables::clear_player_staff( staff.weapname );
         staff.charge_trigger trigger_off();
@@ -270,7 +281,7 @@ craftMaxisAtWind() {
     level waittill("allPartsTaken");
 
     maxis = find_craftable_stub("equip_dieseldrone_zm");
-    
+
     t = level.a_uts_craftables[1];
     t.a_uts_open_craftables_available = [];
     t.a_uts_open_craftables_available[0] = maxis;
@@ -360,7 +371,7 @@ runGramDoor() {
     self delete();
 }
 
-openPortals() {   
+openPortals() {
     portals = getstructarray("stargate_gramophone_pos", "targetname");
     if (getDvarInt("EndingPractice_gram") == 1) {
         portals[2] thread activatePortal();
@@ -452,7 +463,7 @@ waittillDug( s_dig_spot ) {
             player setclientfieldtoplayer( "player_rumble_and_shake", 1 );
             player maps\mp\zombies\_zm_stats::increment_client_stat( "tomb_dig", 0 );
             player maps\mp\zombies\_zm_stats::increment_player_stat( "tomb_dig" );
-            
+
             self thread digUpBlood();
 
             if ( !player.dig_vars["has_upgraded_shovel"] )
@@ -600,7 +611,7 @@ giantRobotStartWalk( n_robot_id, b_has_hatch = 1 ) {
             else
                 ai.hatch_foot = "right";
         }
-        
+
         if ( ai.hatch_foot == "left" )
         {
             n_sole_origin = ai gettagorigin( "TAG_ATTACH_HATCH_LE" );
@@ -668,7 +679,7 @@ mechzRoundTracker() {
     r = getDvarInt("EndingPractice_round");
     if (r > 7 && r < 200) {
         mech_start_round_num = r + 1;
-    } 
+    }
 
     while ( level.round_number < mech_start_round_num )
         level waittill( "between_round_over" );
